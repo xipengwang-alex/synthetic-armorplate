@@ -158,7 +158,7 @@ global proc ds_GetSelectedPoint(){
 	float $rotX;
 	float $rotY;
 	float $dolly;
-	int $datasetSize = 1500; // test Dataset Size
+	int $datasetSize = 1; // test Dataset Size
 		
 	/* Elanco 
 	$vertices = {"Retop.vtx[627]", "Retop.vtx[3573]", "Retop.vtx[626]", "Retop.vtx[2737]", "Retop.vtx[199]", "Retop.vtx[184]", "Retop.vtx[2720]", "Retop.vtx[3574]", "Retop.vtx[2832]", "Retop.vtx[2812]", "Retop.vtx[3921]", "Retop.vtx[4346]", "Retop.vtx[1610]", "Retop.vtx[1319]", "Retop.vtx[1269]", "Retop.vtx[805]", "Retop.vtx[562]", "Retop.vtx[401]", "Retop.vtx[1462]", "Retop.vtx[4062]", "Retop.vtx[1164]", "Retop.vtx[3260]", "Retop.vtx[962]", "Retop.vtx[3795]", "Retop.vtx[3270]", "Retop.vtx[1195]", "Retop.vtx[1215]", "Retop.vtx[627]", "Retop.vtx[3573]"};
@@ -253,36 +253,34 @@ global proc ds_GetSelectedPoint(){
 	
 	
 	    
-  	  	/* Robomaster */
+  	  	/* Robomaster Set to your own path*/
   	  	string $fnames[] = {"C:/Users/wangx/Dropbox/Purdue/2022 Fall/VIP Robomaster/Maya/Mecanum_Balancing/images/"+$numfile+".txt"};
   	  	
-  	  	/* Elanco 
-	  	string $fnames[] = {"C:/Users/wangx/Dropbox/Purdue/2022 Fall/TDM/Elanco/Maya/Dog/images/"+$numfile+".txt"};
-	  	*/
+  	 
 	  	
 	  	string $fname = $fnames[0];
 	  	int $fid = `fopen $fname "w"`;
-		/* Robomaster */
+		/* Robomaster Set to your own path*/
 		string $imagepath = ("C:/Users/wangx/Dropbox/Purdue/2022 Fall/VIP Robomaster/Maya/Mecanum_Balancing/images/"+$numfile+".jpg");
 		
-  	  	/* Elanco 
-		string $imagepath = ("C:/Users/wangx/Dropbox/Purdue/2022 Fall/TDM/Elanco/Maya/Dog/images/"+$numfile+".jpg");
-		*/
 		
 		
 		// Render
 		/* Robomaster */
 		print ("Image : "+$numfile+"\n");
 		
+		/*
 		setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" $numfile;
 	    renderSequence;
+	    */
 	    
 		print ("Rendered to: "+$imagepath+"\n");
-	    /*
+	    
+	    /**/
 		refresh -f;
 		pause -sec 2;
 		arnoldRenderView -opt "Save Image (original)" $imagepath;
-		*/
+		
 		
 		
 		if ($fid){
