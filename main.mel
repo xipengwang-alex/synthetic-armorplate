@@ -147,7 +147,10 @@ global proc ds_CheckRenderResFieldSync(string $fld_name, int $fld_id){
 
 	// beginnng of calculation procedure - iterate through selection list
 global proc ds_GetSelectedPoint(){
-	select -r ap_front;
+    string $startTimePy = "import time; time.time();";
+    float $startTime = python($startTimePy);
+    
+	select -r "ap_front";
 	
 	ConvertSelectionToVertices;
 	string $selected [] = `ls -sl`;
@@ -158,11 +161,9 @@ global proc ds_GetSelectedPoint(){
 	float $rotX;
 	float $rotY;
 	float $dolly;
-	int $datasetSize = 1; // test Dataset Size
+	int $datasetSize = 3; // test Dataset Size
 		
-	/* Elanco 
-	$vertices = {"Retop.vtx[627]", "Retop.vtx[3573]", "Retop.vtx[626]", "Retop.vtx[2737]", "Retop.vtx[199]", "Retop.vtx[184]", "Retop.vtx[2720]", "Retop.vtx[3574]", "Retop.vtx[2832]", "Retop.vtx[2812]", "Retop.vtx[3921]", "Retop.vtx[4346]", "Retop.vtx[1610]", "Retop.vtx[1319]", "Retop.vtx[1269]", "Retop.vtx[805]", "Retop.vtx[562]", "Retop.vtx[401]", "Retop.vtx[1462]", "Retop.vtx[4062]", "Retop.vtx[1164]", "Retop.vtx[3260]", "Retop.vtx[962]", "Retop.vtx[3795]", "Retop.vtx[3270]", "Retop.vtx[1195]", "Retop.vtx[1215]", "Retop.vtx[627]", "Retop.vtx[3573]"};
-	*/
+
 	print $vertices;
 	string $pnt;
 	
@@ -254,14 +255,14 @@ global proc ds_GetSelectedPoint(){
 	
 	    
   	  	/* Robomaster Set to your own path*/
-  	  	string $fnames[] = {"C:/Users/wangx/Dropbox/Purdue/2022 Fall/VIP Robomaster/Maya/Mecanum_Balancing/images/"+$numfile+".txt"};
+  	  	string $fnames[] = {"C:/Users/wangx/Dropbox/Purdue/2022_Fall/VIP Robomaster/Maya/Mecanum_Balancing/images/"+$numfile+".txt"};
   	  	
   	 
 	  	
 	  	string $fname = $fnames[0];
 	  	int $fid = `fopen $fname "w"`;
 		/* Robomaster Set to your own path*/
-		string $imagepath = ("C:/Users/wangx/Dropbox/Purdue/2022 Fall/VIP Robomaster/Maya/Mecanum_Balancing/images/"+$numfile+".jpg");
+		string $imagepath = ("C:/Users/wangx/Dropbox/Purdue/2022_Fall/VIP Robomaster/Maya/Mecanum_Balancing/images/"+$numfile+".jpg");
 		
 		
 		
@@ -271,16 +272,16 @@ global proc ds_GetSelectedPoint(){
 		
 		/*
 		setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" $numfile;
-	    renderSequence;
+		renderSequence;
 	    */
-	    
 		print ("Rendered to: "+$imagepath+"\n");
 	    
-	    /**/
+	    
 		refresh -f;
-		pause -sec 2;
+		python("import time; time.sleep(0.5)");
 		arnoldRenderView -opt "Save Image (original)" $imagepath;
-		
+		/*
+		*/
 		
 		
 		if ($fid){
@@ -324,6 +325,13 @@ global proc ds_GetSelectedPoint(){
 
 	} // -------------------- End Loop --------------------
 
+	// Print time spent
+    string $endTimePy = "import time; time.time();";
+    float $endTime = python($endTimePy);
+    float $elapsedTime = $endTime - $startTime;
+    print("Time spent: " + $elapsedTime + " seconds.");
+    //print($startTime);
+    //print($endTime);
 }	
 
 global proc string getRenderWindowPanel()
