@@ -87,6 +87,8 @@ string $ui_windw	= `window -t "3d Point to 2d Pixel"  -s true -rtf true dsPnt2Px
 
 global float $vtxXarray[];
 global float $vtxYarray[];
+global float $vtxXarray2[];
+global float $vtxYarray2[];
 
 global int $smallX = 0;
 global int $largeX = 0;
@@ -98,6 +100,15 @@ global float $centerY = 0;
 global float $width = 0;
 global float $height = 0;
 
+global int $smallX2 = 0;
+global int $largeX2 = 0;
+global int $smallY2 = 0;
+global int $largeY2 = 0;
+
+global float $centerX2 = 0;
+global float $centerY2 = 0;
+global float $width2 = 0;
+global float $height2 = 0;
 
 //global int $numfile = 0;
 
@@ -145,126 +156,192 @@ global proc ds_CheckRenderResFieldSync(string $fld_name, int $fld_id){
 	}
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	// beginnng of calculation procedure - iterate through selection list
 global proc ds_GetSelectedPoint(){
-    string $startTimePy = "import time; time.time();";
+	string $startTimePy = "import time; time.time();";
     float $startTime = python($startTimePy);
-    
-	select -r "ap_front";
+
+	
+	select -r "ap_front" "ap_front1";
 	
 	ConvertSelectionToVertices;
 	string $selected [] = `ls -sl`;
-	string $vertices [] = `filterExpand -sm 31`;
+
+
 	
+	int $numVert = 0;
+	int $sizeSelected = size($selected);
+	print($sizeSelected);
+
+
 	string $camera = "render";
 	int $mode;
 	float $rotX;
 	float $rotY;
 	float $dolly;
-	int $datasetSize = 3; // test Dataset Size
-		
+	int $datasetSize = 10; // test Dataset Size
+	int $imagepath = 0;
+	int $fid = 0;
 
-	print $vertices;
 	string $pnt;
-	
 	// -------------------- Start Loop --------------------
 	for ($numfile=0; $numfile<$datasetSize; ++$numfile) { // start numfile
-	
-	// Randomize Camera attributes
-	$mode = rand(0,100);
-	if ($mode < 20) {
-	    $rotX = rand(-80,-10);
-	} else {
-	    $rotX = rand(-10,0);
-	}
-	$rotY = rand(-80,80);
-	$dolly = rand(104,555);
-	print("rotX : "+$rotX+"\n"+"rotY : "+$rotY+"\n");
-	
-	
-	// Setup camera
-	viewLookAt -pos 0 20.67 20 $camera;
-	rotate -pivot 0 20.67 20 $rotX $rotY 0 $camera;
-	dolly -abs -d $dolly $camera;
-	
-	
-	if (size($vertices)){
+		
+		// Randomize Camera attributes
+		$mode = rand(0,100);
+		if ($mode < 20) {
+			$rotX = rand(-80,-10);
+		} else {
+			$rotX = rand(-10,0);
+		}
+		$rotY = rand(-80,80);
+		$dolly = rand(104,555);
+		print("rotX : "+$rotX+"\n"+"rotY : "+$rotY+"\n");
+		
+		
+		// Setup camera
+		viewLookAt -pos 0 20.67 20 $camera;
+		rotate -pivot 0 20.67 20 $rotX $rotY 0 $camera;
+		dolly -abs -d $dolly $camera;
+		
+		
+
 		ds_PrintOutputOptionsHeader(0, 0); 
 		
-		for ($pnt in $vertices){
-		
-			if ( catchQuiet( `xform -q -ws -t $pnt` ) ) {
-				print  ("\nSkipping selection: "+$pnt+"\n");
-				print ("Not valid point geometry or transform node.\n\n");
-		    }	
-		    else {
-				ds_CalcPixelLocation($pnt);
+
+
+		for ($numVert=0; $numVert<$sizeSelected; ++$numVert){
+			string $vertices[] = `filterExpand -sm 31 $selected[$numVert]`;
+			print(size($vertices));
+
+
+			
+			for ($pnt in $vertices){
+				
+				if ( catchQuiet( `xform -q -ws -t $pnt` ) ) {
+					print  ("\nSkipping selection: "+$pnt+"\n");
+					print ("Not valid point geometry or transform node.\n\n");
+				}	
+				else {
+					ds_CalcPixelLocation($pnt, $vtxXarray, $vtxYarray);
+				}
 			}
+		
+		
+			print($vtxXarray);
+		
+			for ($i=0; $i<size($vtxXarray); $i++){
+				if ($vtxXarray[$i] <= $vtxXarray[$smallX]) {
+					$smallX = $i;
+				}
+				if ($vtxXarray[$i] >= $vtxXarray[$largeX]) {
+					$largeX = $i;
+				}
+				if ($vtxYarray[$i] <= $vtxYarray[$smallY]) {
+					$smallY = $i;
+				}
+				if ($vtxYarray[$i] >= $vtxYarray[$largeY]) {
+					$largeY = $i;
+				}
+			}
+
+			$centerX = ($vtxXarray[$largeX] - $vtxXarray[$smallX])/2 + $vtxXarray[$smallX];
+			$centerY = ($vtxYarray[$largeY] - $vtxYarray[$smallY])/2 + $vtxYarray[$smallY];
+			$width = $vtxXarray[$largeX] - $vtxXarray[$smallX];
+			$height = $vtxYarray[$largeY] - $vtxYarray[$smallY];
+			
+			
+
+			//   0        1         2         3        4       5        6        7
+			// 'blue', 'blue3L', 'blue4L', 'blue5L', 'red', 'red3L', 'red4L', 'red5L' Change red4L and redL class and check others
+			string $out_string = ("5 "+$centerX+" "+$centerY+" "+$width+" "+$height+"\n");
+
+			print  ("\noutput1: \n"+$out_string+"\n");
+
+		
+			
+			/* Robomaster Set to your own path*/
+			string $fnames[] = {"C:/Users/mengt/Documents/maya/projects/synthetic-armorplate-main/Mecanum_Balancing/images/"+$numfile+".txt"};
+			
+				
+			string $fname = $fnames[0];
+
+			if ($numVert == 0) {
+				$fid = `fopen $fname "w"`;
+			} else {
+				$fid = `fopen $fname "a"`;
+			}
+			
+			
+			if ($fid){
+				fprint $fid $out_string;
+			}
+			
+			if ($fid){
+				print ("Wrote output file "+$fname+"\n");
+				print ("Closing output file ID : "+$fid+"\n"); 
+				fclose $fid;
+			} 
+
+
+			
+			// zero
+		
+			$vtxXarray = {};
+			$vtxYarray = {};
+
+
+			
+			$smallX = 0;
+			$largeX = 0;
+			$smallY = 0;
+			$largeY = 0;
+
+			
+			$centerX = 0;
+			$centerY = 0;
+			$width = 0;
+			$height = 0;
+
+			
+				
+			// zero end
+
 		}
+
+
+
+
+
 		
-    
-		// test 
-		/*
-		for ($i=0; $i<size($vtxXarray); $i++){
-			print  ("X array: "+$vtxXarray[$i]+"\n");
-		}
-		
-		for ($i=0; $i<size($vtxYarray); $i++){
-			print  ("Y array: "+$vtxYarray[$i]+"\n");		  
-		}
-		*/
-    
-		for ($i=0; $i<size($vtxXarray); $i++){
-			if ($vtxXarray[$i] <= $vtxXarray[$smallX]) {
-				$smallX = $i;
-			}
-			if ($vtxXarray[$i] >= $vtxXarray[$largeX]) {
-				$largeX = $i;
-			}
-			if ($vtxYarray[$i] <= $vtxYarray[$smallY]) {
-				$smallY = $i;
-			}
-			if ($vtxYarray[$i] >= $vtxYarray[$largeY]) {
-				$largeY = $i;
-			}
-		}
-		
-		print  ("\nsmallX: x = "+$vtxXarray[$smallX]+" y = "+$vtxYarray[$smallX]+"\n");
-		print  ("largeX: x = "+$vtxXarray[$largeX]+" y = "+$vtxYarray[$largeX]+"\n");
-		print  ("smallY: x = "+$vtxXarray[$smallY]+" y = "+$vtxYarray[$smallY]+"\n");
-		print  ("largeY: x = "+$vtxXarray[$largeY]+" y = "+$vtxYarray[$largeY]+"\n");
-		
-		$centerX = ($vtxXarray[$largeX] - $vtxXarray[$smallX])/2 + $vtxXarray[$smallX];
-		$centerY = ($vtxYarray[$largeY] - $vtxYarray[$smallY])/2 + $vtxYarray[$smallY];
-		$width = $vtxXarray[$largeX] - $vtxXarray[$smallX];
-		$height = $vtxYarray[$largeY] - $vtxYarray[$smallY];
-		
-		/*
-		print  ("\ncenterX: "+$centerX+"\n");
-		print  ("centerY: "+$centerY+"\n");
-		print  ("width: "+$width+"\n");
-		print  ("height: "+$height+"\n");
-		*/
-		
-		//   0        1         2         3        4       5        6        7
-		// 'blue', 'blue3L', 'blue4L', 'blue5L', 'red', 'red3L', 'red4L', 'red5L' Change red4L and redL class and check others
-		string $out_string = ("5 "+$centerX+" "+$centerY+" "+$width+" "+$height);
-		
-		print  ("\noutput: \n"+$out_string+"\n");
-	
-	
-	    
-  	  	/* Robomaster Set to your own path*/
-  	  	string $fnames[] = {"C:/Users/wangx/Dropbox/Purdue/2022_Fall/VIP Robomaster/Maya/Mecanum_Balancing/images/"+$numfile+".txt"};
-  	  	
-  	 
-	  	
-	  	string $fname = $fnames[0];
-	  	int $fid = `fopen $fname "w"`;
 		/* Robomaster Set to your own path*/
-		string $imagepath = ("C:/Users/wangx/Dropbox/Purdue/2022_Fall/VIP Robomaster/Maya/Mecanum_Balancing/images/"+$numfile+".jpg");
+		string $imagepath = ("C:/Users/mengt/Documents/maya/projects/synthetic-armorplate-main/Mecanum_Balancing/images/"+$numfile+".jpg");
 		
 		
+
 		
 		// Render
 		/* Robomaster */
@@ -273,55 +350,29 @@ global proc ds_GetSelectedPoint(){
 		/*
 		setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" $numfile;
 		renderSequence;
-	    */
+		*/
 		print ("Rendered to: "+$imagepath+"\n");
-	    
-	    
+		
+		
 		refresh -f;
-		python("import time; time.sleep(0.5)");
+		python("import time; time.sleep(1)");
 		arnoldRenderView -opt "Save Image (original)" $imagepath;
 		/*
 		*/
-		
-		
-		if ($fid){
-			fprint $fid $out_string;
-		}
-		
-		if ($fid){
-			print ("Wrote output file "+$fname+"\n");
-			print ("Closing output file ID : "+$fid+"\n"); 
-			fclose $fid;
-		} 
-		
-		
-		// test
-      
-		$vtxXarray = {};
-		$vtxYarray = {};
-		
-		$smallX = 0;
-		$largeX = 0;
-		$smallY = 0;
-		$largeY = 0;
-		
-		$centerX = 0;
-		$centerY = 0;
-		$width = 0;
-		$height = 0;
-		
-		$fnames = {};
+
+		print("End loop\n");
+		// zero
+
+		//$fnames = {};
 		$fname = "";
 		$fid = 0;
 		//$numfile++;
 		$imagepath = 0;
 		
+		// zero ends
 		
-		// test end
-    	  
-	}	
-	else
-		confirmDialog -t "Empty Selection" -m "You must select one or more objects to track." -p dsPnt2PxlWindow;
+
+		
 
 	} // -------------------- End Loop --------------------
 
@@ -332,7 +383,41 @@ global proc ds_GetSelectedPoint(){
     print("Time spent: " + $elapsedTime + " seconds.");
     //print($startTime);
     //print($endTime);
+    
 }	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 global proc string getRenderWindowPanel()
 {
@@ -353,7 +438,14 @@ global proc string getRenderWindowPanel()
 }
 
 
-global proc ds_CalcPixelLocation(string $obj){
+
+
+
+
+
+
+
+global proc ds_CalcPixelLocation(string $obj, float $Xarray[], float $Yarray[]){
 	
 		// get image pixel dimensions from UI
 	float $res_w = `intField -q -v dsPnt2PxlRenderResFldx`;
@@ -517,8 +609,13 @@ global proc ds_CalcPixelLocation(string $obj){
 		
 		// test update vtxarray
 		
-		$vtxXarray[size($vtxXarray)] = $out_x;
-		$vtxYarray[size($vtxYarray)] = $out_y;
+		
+		print("             asfagagashit\n");
+		$Xarray[size($Xarray)] = $out_x;
+		$Yarray[size($Yarray)] = $out_y;
+
+
+		
 		
 	}
 		// display result output in gui number fields (last current frame)
@@ -533,6 +630,31 @@ global proc ds_CalcPixelLocation(string $obj){
 	} 
 
 } // end calc location proc 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
